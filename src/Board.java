@@ -3,10 +3,12 @@ import java.util.Random;
 
 public class Board {
     Cell[][] cells;
+    Random random;
 
-    Board(int size) {
+    Board(Random random, int size) {
         this.cells = new Cell[size][size];
-
+        this.random = random;
+        
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 this.cells[i][j] = new Cell();
@@ -19,17 +21,30 @@ public class Board {
         cells[x][y].setSymbol(symbol);
     }
 
-    boolean isWinningRow(int x, Symbol symbol) {
+/*    boolean isWinningRow(int x, Symbol symbol) {
         int sum = 0;
-        for (int i = 0; i < cells.length; i++) {
+        for (int i = 0; i < cells[x].length; i++) {
             if (cells[x][i].getSymbol().equals(symbol)) {
                 sum++;
             }
         }
-        return sum == cells.length - 1;
+        return sum == cells[x].length - 1;
+    }*/
+
+    int findWinningCellInRow(int x, Symbol symbol) {
+        int y = -1;
+        int sum = 0;
+        for (int i = 0; i < cells[x].length; i++) {
+            if (cells[x][i].getSymbol().equals(symbol)) {
+                sum++;
+            } else if (cells[x][i].getSymbol().equals(Symbol.EMPTY)) {
+                y = i;
+            }
+        }
+        return sum == cells[x].length - 1 ? y : -1;
     }
 
-    boolean isWinningCol(int y, Symbol symbol) {
+/*    boolean isWinningCol(int y, Symbol symbol) {
         int sum = 0;
         for (int i = 0; i < cells.length; i++) {
             if (cells[i][y].getSymbol().equals(symbol)) {
@@ -37,16 +52,45 @@ public class Board {
             }
         }
         return sum == cells.length - 1;
+    }*/
+
+    int findWinningCellInCol(int y, Symbol symbol) {
+        int x = -1;
+        int sum = 0;
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i][y].getSymbol().equals(symbol)) {
+                sum++;
+            } else if (cells[i][y].getSymbol().equals(Symbol.EMPTY)) {
+                x = i;
+            }
+        }
+        return sum == cells.length - 1 ? x : -1;
     }
 
-    boolean isWinningLDiag(Symbol symbol) {
+    int findWinningCellInLDiag(Symbol symbol) {
         int sum = 0;
+        int coord = -1;
         for (int i = 0; i < cells.length; i++) {
             if (cells[i][i].getSymbol().equals(symbol)) {
                 sum++;
+            } else if (cells[i][i].getSymbol().equals(Symbol.EMPTY)) {
+                coord = i;
             }
         }
-        return sum == cells.length - 1;
+        return sum == cells.length - 1 ? coord : -1;
+    }
+
+    int findWinningCellInRDiag(Symbol symbol) {
+        int sum = 0;
+        int coord = -1;
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i][cells.length - 1 - i].getSymbol().equals(symbol)) {
+                sum++;
+            } else if (cells[i][cells.length - 1 - i].getSymbol().equals(Symbol.EMPTY)) {
+                coord = i;
+            }
+        }
+        return sum == cells.length - 1 ? coord : -1;
     }
 
     boolean isWinningRDiag(Symbol symbol) {
@@ -99,7 +143,7 @@ public class Board {
         return rowNum;
     }
 
-    int checkRow(int rowNum) {
+    int findPlaceForOInRow(int rowNum) {
         //TODO метод всегда ищет куда поставить нолик, надо расширить, чтобы искал куда поставить и крестик
         int pos = -1; //Позиция нолика
         int stepX = -1; //Куда поставить нолик
@@ -107,7 +151,7 @@ public class Board {
             if (cells[rowNum][i].getSymbol().equals(Symbol.O)) {
                 pos = i;
             } else if (cells[rowNum][i].getSymbol().equals(Symbol.X)) {
-                System.out.println("В строке №" + rowNum + " не может быть выйгрыша");
+                System.out.println("В строке №" + rowNum + " не может быть выигрыша");
                 pos = -1;
                 break;
             }
@@ -119,12 +163,12 @@ public class Board {
         } else if (pos == -1) {
             stepX = -1;
         } else {
-            stepX = new Random().nextBoolean() ? 0 : cells.length - 1;
+            stepX = random.nextBoolean() ? 0 : cells.length - 1;
         }
         return stepX;
     }
 
-    int checkCol(int colNum) {
+    int findPlaceForOInCol(int colNum) {
         //TODO метод всегда ищет куда поставить нолик, надо расширить, чтобы искал куда поставить и крестик
         int pos = -1; //Позиция нолика
         int stepY = -1; //Куда поставить нолик
@@ -132,7 +176,7 @@ public class Board {
             if (cells[i][colNum].getSymbol().equals(Symbol.O)) {
                 pos = i;
             } else if (cells[i][colNum].getSymbol().equals(Symbol.X)) {
-                System.out.println("В столбце №" + colNum + " не может быть выйгрыша");
+                System.out.println("В столбце №" + colNum + " не может быть выигрыша");
                 pos = -1;
                 break;
             }
@@ -144,19 +188,19 @@ public class Board {
         } else if (pos == -1) {
             stepY = -1;
         } else {
-            stepY = new Random().nextBoolean() ? 0 : cells.length - 1;
+            stepY = random.nextBoolean() ? 0 : cells.length - 1;
         }
         return stepY;
     }
 
-    int checkLDiag() {
+    int findPlaceForOInLDiag() {
         int coord = -1;
         int pos = -1;
         for (int i = 0; i < cells.length; i++) {
             if (cells[i][i].getSymbol().equals(Symbol.O)) {
                 pos = i;
             } else if (cells[i][i].getSymbol().equals(Symbol.X)) {
-                System.out.println("В левой диагонали не может быть выйгрыша");
+                System.out.println("В левой диагонали не может быть выигрыша");
                 pos = -1;
                 break;
             }
@@ -168,19 +212,19 @@ public class Board {
         } else if (pos == -1) {
             coord = -1;
         } else {
-            coord = new Random().nextBoolean() ? 0 : cells.length - 1;
+            coord = random.nextBoolean() ? 0 : cells.length - 1;
         }
         return coord;
     }
 
-    int checkRDiag() {
+    int findPlaceForOInRDiag() {
         int coord = -1;
         int pos = -1;
         for (int i = 0; i < cells.length; i++) {
             if (cells[i][cells.length - 1 - i].getSymbol().equals(Symbol.O)) {
                 pos = i;
             } else if (cells[i][cells.length - 1 - i].getSymbol().equals(Symbol.X)) {
-                System.out.println("В правой диагонали не может быть выйгрыша");
+                System.out.println("В правой диагонали не может быть выигрыша");
                 pos = -1;
                 break;
             }
@@ -192,7 +236,7 @@ public class Board {
         } else if (pos == -1) {
             coord = -1;
         } else {
-            coord = new Random().nextBoolean() ? 0 : cells.length - 1;
+            coord = random.nextBoolean() ? 0 : cells.length - 1;
         }
         return coord;
     }
@@ -202,8 +246,8 @@ public class Board {
 
         boolean isFound = true;
         while (isFound) {
-            Integer x = new Random().nextInt(2);
-            Integer y = new Random().nextInt(2);
+            Integer x = random.nextInt(3);
+            Integer y = random.nextInt(3);
             if (isEmptyCell(x, y)) {
                 isFound = false;
                 coords.put("x", x);

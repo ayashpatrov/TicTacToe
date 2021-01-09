@@ -3,8 +3,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
 
-public class MainForm extends JFrame {
+public class MainForm extends JFrame implements GameFinished {
     private JPanel rootPanel;
     private JPanel field00;
     private JPanel field01;
@@ -28,8 +29,8 @@ public class MainForm extends JFrame {
     JButton[][] buttons;
     Controller controller;
 
-    public MainForm(Controller controller) {
-
+    public MainForm(Random random) {
+        controller = new Controller(random, this);
         $$$setupUI$$$();
         setContentPane(rootPanel);
         setSize(300, 300);
@@ -38,97 +39,64 @@ public class MainForm extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         buttons = new JButton[3][3];
-        buttons[0][0] = button00;
-        buttons[0][1] = button01;
-        buttons[0][2] = button02;
-        buttons[1][0] = button10;
-        buttons[1][1] = button11;
-        buttons[1][2] = button12;
-        buttons[2][0] = button20;
-        buttons[2][1] = button21;
-        buttons[2][2] = button22;
 
-        this.controller = controller;
-
-        button00.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(0, 0, Symbol.X);
-            }
-        });
-
-        button01.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(0, 1, Symbol.X);
-            }
-        });
-
-        button02.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(0, 2, Symbol.X);
-            }
-        });
-
-        button10.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(1, 0, Symbol.X);
-            }
-        });
-
-        button11.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(1, 1, Symbol.X);
-            }
-        });
-
-        button12.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(1, 2, Symbol.X);
-            }
-        });
-
-        button20.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(2, 0, Symbol.X);
-            }
-        });
-
-        button21.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(2, 1, Symbol.X);
-            }
-        });
-
-        button22.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setSymbolOnBoard(2, 2, Symbol.X);
-            }
-        });
+        registerButton(button00, 0, 0);
+        registerButton(button01, 0, 1);
+        registerButton(button02, 0, 2);
+        registerButton(button10, 1, 0);
+        registerButton(button11, 1, 1);
+        registerButton(button12, 1, 2);
+        registerButton(button20, 2, 0);
+        registerButton(button21, 2, 1);
+        registerButton(button22, 2, 2);
 
         button1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Это кнопка, которая говорит о том, что шаг человека завершён
-                try {
-                    controller.getDecision();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
-                setBoard(controller.getBoard());
+                makeStep();
                 System.out.println("Button pressed");
             }
         });
     }
+
+    private void makeStep() {
+        controller.getDecision();
+        setBoard(controller.getBoard());
+    }
+
     public void close() {
         this.dispose();
+    }
+
+    @Override
+    public void xWin() {
+        showPanel("Выиграли крестики");
+    }
+
+    @Override
+    public void oWin() {
+        showPanel("Выиграли нолики");
+    }
+
+    @Override
+    public void draw() {
+        showPanel("Ничья");
+    }
+
+    void showPanel(String message) {
+        setBoard(controller.getBoard());
+        int n = JOptionPane.showConfirmDialog(
+                null,
+                message + ", начать заново?",
+                "Игра окончена",
+                JOptionPane.YES_NO_OPTION);
+        System.out.println("option n = " + n);
+        if (n == 0) {
+            controller.getBoard().reset();
+        } else {
+            close();
+        }
     }
 
     void setSymbolOnBoard(int x, int y, Symbol symbol) {
@@ -143,20 +111,23 @@ public class MainForm extends JFrame {
         }
     }
 
-    void setButtonSymbol(JButton button, Symbol symbol) {
-        if (button.getText().equals(Symbol.getDescr(symbol))) {
-            button.setText("");
-        } else {
-            button.setText(Symbol.getDescr(symbol));
-        }
-    }
-
     void setBoard(Board board) {
         for (int i = 0; i < board.getCells().length; i++) {
             for (int j = 0; j < board.getCells().length; j++) {
                 buttons[i][j].setText(Symbol.getDescr(board.getCells()[i][j].getSymbol()));
             }
         }
+    }
+
+    void registerButton(JButton button, int x, int y) {
+        buttons[x][y] = button;
+        buttons[x][y].addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setSymbolOnBoard(x, y, Symbol.X);
+                makeStep();
+            }
+        });
     }
 
     /**
